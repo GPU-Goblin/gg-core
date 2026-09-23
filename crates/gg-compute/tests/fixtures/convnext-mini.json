@@ -1,0 +1,710 @@
+{
+ "format": "gg-graph/v1",
+ "name": "convnext-mini",
+ "inputs": [
+  {
+   "name": "x",
+   "shape": [
+    0,
+    3,
+    32,
+    32
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "parameters": [
+  {
+   "name": "inner.embeddings.patch_embeddings.weight",
+   "shape": [
+    8,
+    3,
+    4,
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.embeddings.patch_embeddings.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.embeddings.layernorm.weight",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.embeddings.layernorm.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.layer_scale_parameter",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.dwconv.weight",
+   "shape": [
+    8,
+    1,
+    7,
+    7
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.dwconv.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.layernorm.weight",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.layernorm.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.pwconv1.weight",
+   "shape": [
+    32,
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.pwconv1.bias",
+   "shape": [
+    32
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.pwconv2.weight",
+   "shape": [
+    8,
+    32
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.0.layers.0.pwconv2.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.downsampling_layer.0.weight",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.downsampling_layer.0.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.downsampling_layer.1.weight",
+   "shape": [
+    16,
+    8,
+    2,
+    2
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.downsampling_layer.1.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.layer_scale_parameter",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.dwconv.weight",
+   "shape": [
+    16,
+    1,
+    7,
+    7
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.dwconv.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.layernorm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.layernorm.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.pwconv1.weight",
+   "shape": [
+    64,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.pwconv1.bias",
+   "shape": [
+    64
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.pwconv2.weight",
+   "shape": [
+    16,
+    64
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.stages.1.layers.0.pwconv2.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.layernorm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.layernorm.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  }
+ ],
+ "nodes": [
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "x",
+    "inner.embeddings.patch_embeddings.weight",
+    "inner.embeddings.patch_embeddings.bias"
+   ],
+   "output": "conv2d",
+   "attrs": {
+    "stride": [
+     4,
+     4
+    ],
+    "padding": [
+     0,
+     0
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "conv2d"
+   ],
+   "output": "permute",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     3,
+     1
+    ]
+   }
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "permute",
+    "inner.embeddings.layernorm.weight",
+    "inner.embeddings.layernorm.bias"
+   ],
+   "output": "layer_norm",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-06
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "layer_norm"
+   ],
+   "output": "permute_1",
+   "attrs": {
+    "perm": [
+     0,
+     3,
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "permute_1",
+    "inner.encoder.stages.0.layers.0.dwconv.weight",
+    "inner.encoder.stages.0.layers.0.dwconv.bias"
+   ],
+   "output": "conv2d_1",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     3,
+     3
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 8
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "conv2d_1"
+   ],
+   "output": "permute_2",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     3,
+     1
+    ]
+   }
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "permute_2",
+    "inner.encoder.stages.0.layers.0.layernorm.weight",
+    "inner.encoder.stages.0.layers.0.layernorm.bias"
+   ],
+   "output": "layer_norm_1",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-06
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.stages.0.layers.0.pwconv1.weight"
+   ],
+   "output": "linear_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "layer_norm_1",
+    "linear_wT"
+   ],
+   "output": "linear"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear",
+    "inner.encoder.stages.0.layers.0.pwconv1.bias"
+   ],
+   "output": "linear_b"
+  },
+  {
+   "op": "Gelu",
+   "inputs": [
+    "linear_b"
+   ],
+   "output": "gelu"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.stages.0.layers.0.pwconv2.weight"
+   ],
+   "output": "linear_1_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "gelu",
+    "linear_1_wT"
+   ],
+   "output": "linear_1"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_1",
+    "inner.encoder.stages.0.layers.0.pwconv2.bias"
+   ],
+   "output": "linear_1_b"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "inner.encoder.stages.0.layers.0.layer_scale_parameter",
+    "linear_1_b"
+   ],
+   "output": "mul"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "mul"
+   ],
+   "output": "permute_3",
+   "attrs": {
+    "perm": [
+     0,
+     3,
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "permute_1",
+    "permute_3"
+   ],
+   "output": "add"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "add"
+   ],
+   "output": "permute_4",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     3,
+     1
+    ]
+   }
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "permute_4",
+    "inner.encoder.stages.1.downsampling_layer.0.weight",
+    "inner.encoder.stages.1.downsampling_layer.0.bias"
+   ],
+   "output": "layer_norm_2",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-06
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "layer_norm_2"
+   ],
+   "output": "permute_5",
+   "attrs": {
+    "perm": [
+     0,
+     3,
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "permute_5",
+    "inner.encoder.stages.1.downsampling_layer.1.weight",
+    "inner.encoder.stages.1.downsampling_layer.1.bias"
+   ],
+   "output": "conv2d_2",
+   "attrs": {
+    "stride": [
+     2,
+     2
+    ],
+    "padding": [
+     0,
+     0
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv2d_2",
+    "inner.encoder.stages.1.layers.0.dwconv.weight",
+    "inner.encoder.stages.1.layers.0.dwconv.bias"
+   ],
+   "output": "conv2d_3",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     3,
+     3
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 16
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "conv2d_3"
+   ],
+   "output": "permute_6",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     3,
+     1
+    ]
+   }
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "permute_6",
+    "inner.encoder.stages.1.layers.0.layernorm.weight",
+    "inner.encoder.stages.1.layers.0.layernorm.bias"
+   ],
+   "output": "layer_norm_3",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-06
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.stages.1.layers.0.pwconv1.weight"
+   ],
+   "output": "linear_2_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "layer_norm_3",
+    "linear_2_wT"
+   ],
+   "output": "linear_2"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_2",
+    "inner.encoder.stages.1.layers.0.pwconv1.bias"
+   ],
+   "output": "linear_2_b"
+  },
+  {
+   "op": "Gelu",
+   "inputs": [
+    "linear_2_b"
+   ],
+   "output": "gelu_1"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.stages.1.layers.0.pwconv2.weight"
+   ],
+   "output": "linear_3_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "gelu_1",
+    "linear_3_wT"
+   ],
+   "output": "linear_3"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_3",
+    "inner.encoder.stages.1.layers.0.pwconv2.bias"
+   ],
+   "output": "linear_3_b"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "inner.encoder.stages.1.layers.0.layer_scale_parameter",
+    "linear_3_b"
+   ],
+   "output": "mul_1"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "mul_1"
+   ],
+   "output": "permute_7",
+   "attrs": {
+    "perm": [
+     0,
+     3,
+     1,
+     2
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "conv2d_2",
+    "permute_7"
+   ],
+   "output": "add_1"
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "add_1"
+   ],
+   "output": "mean_3",
+   "attrs": {
+    "axis": 3,
+    "keepdims": 0
+   }
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "mean_3"
+   ],
+   "output": "mean_2",
+   "attrs": {
+    "axis": 2,
+    "keepdims": 0
+   }
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "mean_2",
+    "inner.layernorm.weight",
+    "inner.layernorm.bias"
+   ],
+   "output": "layer_norm_4",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-12
+   }
+  }
+ ],
+ "loss": {
+  "mean_squared_error": {
+   "prediction": "layer_norm_4",
+   "target": {
+    "name": "y",
+    "shape": [
+     0,
+     16
+    ],
+    "dtype": "f32"
+   }
+  }
+ }
+}

@@ -1,0 +1,1204 @@
+{
+ "format": "gg-graph/v1",
+ "name": "wav2vec2-mini",
+ "inputs": [
+  {
+   "name": "x",
+   "shape": [
+    0,
+    400
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "parameters": [
+  {
+   "name": "inner.masked_spec_embed",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_extractor.conv_layers.0.conv.weight",
+   "shape": [
+    8,
+    1,
+    10
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_extractor.conv_layers.0.layer_norm.weight",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_extractor.conv_layers.0.layer_norm.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_extractor.conv_layers.1.conv.weight",
+   "shape": [
+    8,
+    8,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_projection.layer_norm.weight",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_projection.layer_norm.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_projection.projection.weight",
+   "shape": [
+    16,
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.feature_projection.projection.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.pos_conv_embed.conv.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.pos_conv_embed.conv.parametrizations.weight.or",
+   "shape": [
+    1,
+    1,
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.pos_conv_embed.conv.parametrizations.weight.or_2",
+   "shape": [
+    16,
+    8,
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layer_norm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layer_norm.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.k_proj.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.k_proj.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.v_proj.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.v_proj.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.q_proj.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.q_proj.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.out_proj.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.attention.out_proj.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.layer_norm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.layer_norm.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.feed_forward.intermediate_dense.weigh",
+   "shape": [
+    32,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.feed_forward.intermediate_dense.bias",
+   "shape": [
+    32
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.feed_forward.output_dense.weight",
+   "shape": [
+    16,
+    32
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.feed_forward.output_dense.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.final_layer_norm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.encoder.layers.0.final_layer_norm.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "const.0",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": 0.3535533905932738
+    }
+   },
+   "trainable": false
+  }
+ ],
+ "nodes": [
+  {
+   "op": "Reshape",
+   "inputs": [
+    "x"
+   ],
+   "output": "unsqueeze",
+   "attrs": {
+    "shape": [
+     -1,
+     1,
+     400
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "unsqueeze"
+   ],
+   "output": "conv1d_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     1,
+     1,
+     400
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.feature_extractor.conv_layers.0.conv.weight"
+   ],
+   "output": "conv1d_w4",
+   "attrs": {
+    "shape": [
+     8,
+     1,
+     1,
+     10
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_x4",
+    "conv1d_w4"
+   ],
+   "output": "conv1d_2d",
+   "attrs": {
+    "stride": [
+     1,
+     5
+    ],
+    "padding": [
+     0,
+     0
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_2d"
+   ],
+   "output": "conv1d",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     79
+    ]
+   }
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "conv1d"
+   ],
+   "output": "group_norm_mu",
+   "attrs": {
+    "axis": 2,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Sub",
+   "inputs": [
+    "conv1d",
+    "group_norm_mu"
+   ],
+   "output": "group_norm_d"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "group_norm_d",
+    "group_norm_d"
+   ],
+   "output": "group_norm_d2"
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "group_norm_d2"
+   ],
+   "output": "group_norm_var",
+   "attrs": {
+    "axis": 2,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "group_norm_var"
+   ],
+   "output": "group_norm_r",
+   "attrs": {
+    "expr": "rsqrt(a + 1e-05)"
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "group_norm_d",
+    "group_norm_r"
+   ],
+   "output": "group_norm_n"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.feature_extractor.conv_layers.0.layer_norm.weight"
+   ],
+   "output": "group_norm_gamma",
+   "attrs": {
+    "shape": [
+     8,
+     1
+    ]
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "group_norm_n",
+    "group_norm_gamma"
+   ],
+   "output": "group_norm_scaled"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.feature_extractor.conv_layers.0.layer_norm.bias"
+   ],
+   "output": "group_norm_beta",
+   "attrs": {
+    "shape": [
+     8,
+     1
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "group_norm_scaled",
+    "group_norm_beta"
+   ],
+   "output": "group_norm"
+  },
+  {
+   "op": "Gelu",
+   "inputs": [
+    "group_norm"
+   ],
+   "output": "gelu"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "gelu"
+   ],
+   "output": "conv1d_1_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     79
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.feature_extractor.conv_layers.1.conv.weight"
+   ],
+   "output": "conv1d_1_w4",
+   "attrs": {
+    "shape": [
+     8,
+     8,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_1_x4",
+    "conv1d_1_w4"
+   ],
+   "output": "conv1d_1_2d",
+   "attrs": {
+    "stride": [
+     1,
+     2
+    ],
+    "padding": [
+     0,
+     0
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_1_2d"
+   ],
+   "output": "conv1d_1",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     39
+    ]
+   }
+  },
+  {
+   "op": "Gelu",
+   "inputs": [
+    "conv1d_1"
+   ],
+   "output": "gelu_1"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "gelu_1"
+   ],
+   "output": "transpose",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "transpose",
+    "inner.feature_projection.layer_norm.weight",
+    "inner.feature_projection.layer_norm.bias"
+   ],
+   "output": "layer_norm",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-05
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.feature_projection.projection.weight"
+   ],
+   "output": "linear_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "layer_norm",
+    "linear_wT"
+   ],
+   "output": "linear"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear",
+    "inner.feature_projection.projection.bias"
+   ],
+   "output": "linear_b"
+  },
+  {
+   "op": "Dropout",
+   "inputs": [
+    "linear_b"
+   ],
+   "output": "dropout",
+   "attrs": {
+    "rate": 0.0
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "dropout"
+   ],
+   "output": "transpose_1",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "inner.encoder.pos_conv_embed.conv.parametrizations.weight.or_2",
+    "inner.encoder.pos_conv_embed.conv.parametrizations.weight.or_2"
+   ],
+   "output": "_weight_norm_sq"
+  },
+  {
+   "op": "ReduceSum",
+   "inputs": [
+    "_weight_norm_sq"
+   ],
+   "output": "_weight_norm_ss_1",
+   "attrs": {
+    "axis": 1,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "ReduceSum",
+   "inputs": [
+    "_weight_norm_ss_1"
+   ],
+   "output": "_weight_norm_ss",
+   "attrs": {
+    "axis": 0,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "inner.encoder.pos_conv_embed.conv.parametrizations.weight.or_2",
+    "inner.encoder.pos_conv_embed.conv.parametrizations.weight.or",
+    "_weight_norm_ss"
+   ],
+   "output": "_weight_norm",
+   "attrs": {
+    "expr": "a * (b / sqrt(c))"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "transpose_1"
+   ],
+   "output": "conv1d_2_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     16,
+     1,
+     39
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "_weight_norm"
+   ],
+   "output": "conv1d_2_w4",
+   "attrs": {
+    "shape": [
+     16,
+     8,
+     1,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_2_x4",
+    "conv1d_2_w4",
+    "inner.encoder.pos_conv_embed.conv.bias"
+   ],
+   "output": "conv1d_2_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     4
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 2
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_2_2d"
+   ],
+   "output": "conv1d_2",
+   "attrs": {
+    "shape": [
+     -1,
+     16,
+     40
+    ]
+   }
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "conv1d_2"
+   ],
+   "output": "slice_1",
+   "attrs": {
+    "axis": 2,
+    "start": 0,
+    "end": 39
+   }
+  },
+  {
+   "op": "Gelu",
+   "inputs": [
+    "slice_1"
+   ],
+   "output": "gelu_2"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "gelu_2"
+   ],
+   "output": "transpose_2",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "dropout",
+    "transpose_2"
+   ],
+   "output": "add_2"
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "add_2",
+    "inner.encoder.layer_norm.weight",
+    "inner.encoder.layer_norm.bias"
+   ],
+   "output": "layer_norm_1",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-05
+   }
+  },
+  {
+   "op": "Dropout",
+   "inputs": [
+    "layer_norm_1"
+   ],
+   "output": "dropout_1",
+   "attrs": {
+    "rate": 0.0
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.layers.0.attention.q_proj.weight"
+   ],
+   "output": "linear_1_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "dropout_1",
+    "linear_1_wT"
+   ],
+   "output": "linear_1"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_1",
+    "inner.encoder.layers.0.attention.q_proj.bias"
+   ],
+   "output": "linear_1_b"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "linear_1_b"
+   ],
+   "output": "view",
+   "attrs": {
+    "shape": [
+     -1,
+     39,
+     2,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "view"
+   ],
+   "output": "transpose_3",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.layers.0.attention.k_proj.weight"
+   ],
+   "output": "linear_2_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "dropout_1",
+    "linear_2_wT"
+   ],
+   "output": "linear_2"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_2",
+    "inner.encoder.layers.0.attention.k_proj.bias"
+   ],
+   "output": "linear_2_b"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "linear_2_b"
+   ],
+   "output": "view_1",
+   "attrs": {
+    "shape": [
+     -1,
+     39,
+     2,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "view_1"
+   ],
+   "output": "transpose_4",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.layers.0.attention.v_proj.weight"
+   ],
+   "output": "linear_3_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "dropout_1",
+    "linear_3_wT"
+   ],
+   "output": "linear_3"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_3",
+    "inner.encoder.layers.0.attention.v_proj.bias"
+   ],
+   "output": "linear_3_b"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "linear_3_b"
+   ],
+   "output": "view_2",
+   "attrs": {
+    "shape": [
+     -1,
+     39,
+     2,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "view_2"
+   ],
+   "output": "transpose_5",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "transpose_4"
+   ],
+   "output": "scaled_dot_product_attention_kT",
+   "attrs": {
+    "perm": [
+     0,
+     1,
+     3,
+     2
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "transpose_3",
+    "scaled_dot_product_attention_kT"
+   ],
+   "output": "scaled_dot_product_attention_scores"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "scaled_dot_product_attention_scores",
+    "const.0"
+   ],
+   "output": "scaled_dot_product_attention_scaled"
+  },
+  {
+   "op": "Softmax",
+   "inputs": [
+    "scaled_dot_product_attention_scaled"
+   ],
+   "output": "scaled_dot_product_attention_weights",
+   "attrs": {
+    "axis": 3
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "scaled_dot_product_attention_weights",
+    "transpose_5"
+   ],
+   "output": "scaled_dot_product_attention"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "scaled_dot_product_attention"
+   ],
+   "output": "transpose_6",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "transpose_6"
+   ],
+   "output": "reshape",
+   "attrs": {
+    "shape": [
+     -1,
+     39,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.layers.0.attention.out_proj.weight"
+   ],
+   "output": "linear_4_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "reshape",
+    "linear_4_wT"
+   ],
+   "output": "linear_4"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_4",
+    "inner.encoder.layers.0.attention.out_proj.bias"
+   ],
+   "output": "linear_4_b"
+  },
+  {
+   "op": "Dropout",
+   "inputs": [
+    "linear_4_b"
+   ],
+   "output": "dropout_2",
+   "attrs": {
+    "rate": 0.0
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "dropout_1",
+    "dropout_2"
+   ],
+   "output": "add_3"
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "add_3",
+    "inner.encoder.layers.0.layer_norm.weight",
+    "inner.encoder.layers.0.layer_norm.bias"
+   ],
+   "output": "layer_norm_2",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-05
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.layers.0.feed_forward.intermediate_dense.weigh"
+   ],
+   "output": "linear_5_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "layer_norm_2",
+    "linear_5_wT"
+   ],
+   "output": "linear_5"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_5",
+    "inner.encoder.layers.0.feed_forward.intermediate_dense.bias"
+   ],
+   "output": "linear_5_b"
+  },
+  {
+   "op": "Gelu",
+   "inputs": [
+    "linear_5_b"
+   ],
+   "output": "gelu_3"
+  },
+  {
+   "op": "Dropout",
+   "inputs": [
+    "gelu_3"
+   ],
+   "output": "dropout_3",
+   "attrs": {
+    "rate": 0.0
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.encoder.layers.0.feed_forward.output_dense.weight"
+   ],
+   "output": "linear_6_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "dropout_3",
+    "linear_6_wT"
+   ],
+   "output": "linear_6"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_6",
+    "inner.encoder.layers.0.feed_forward.output_dense.bias"
+   ],
+   "output": "linear_6_b"
+  },
+  {
+   "op": "Dropout",
+   "inputs": [
+    "linear_6_b"
+   ],
+   "output": "dropout_4",
+   "attrs": {
+    "rate": 0.0
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "layer_norm_2",
+    "dropout_4"
+   ],
+   "output": "add_4"
+  },
+  {
+   "op": "LayerNorm",
+   "inputs": [
+    "add_4",
+    "inner.encoder.layers.0.final_layer_norm.weight",
+    "inner.encoder.layers.0.final_layer_norm.bias"
+   ],
+   "output": "layer_norm_3",
+   "attrs": {
+    "axis": -1,
+    "epsilon": 1e-05
+   }
+  }
+ ],
+ "loss": {
+  "mean_squared_error": {
+   "prediction": "layer_norm_3",
+   "target": {
+    "name": "y",
+    "shape": [
+     0,
+     39,
+     16
+    ],
+    "dtype": "f32"
+   }
+  }
+ }
+}

@@ -1,0 +1,139 @@
+{
+  "format": "gg-graph/v1",
+  "name": "mlp-tabular",
+  "inputs": [
+    {
+      "name": "x",
+      "shape": [
+        0,
+        64
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "w1",
+      "shape": [
+        64,
+        256
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "b1",
+      "shape": [
+        1,
+        256
+      ],
+      "init": "zeros"
+    },
+    {
+      "name": "w2",
+      "shape": [
+        256,
+        128
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "b2",
+      "shape": [
+        1,
+        128
+      ],
+      "init": "zeros"
+    },
+    {
+      "name": "w3",
+      "shape": [
+        128,
+        10
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "b3",
+      "shape": [
+        1,
+        10
+      ],
+      "init": "zeros"
+    }
+  ],
+  "nodes": [
+    {
+      "op": "MatMul",
+      "inputs": [
+        "x",
+        "w1"
+      ],
+      "output": "h1"
+    },
+    {
+      "op": "Add",
+      "inputs": [
+        "h1",
+        "b1"
+      ],
+      "output": "h1b"
+    },
+    {
+      "op": "Relu",
+      "inputs": [
+        "h1b"
+      ],
+      "output": "a1"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "a1",
+        "w2"
+      ],
+      "output": "h2"
+    },
+    {
+      "op": "Add",
+      "inputs": [
+        "h2",
+        "b2"
+      ],
+      "output": "h2b"
+    },
+    {
+      "op": "Relu",
+      "inputs": [
+        "h2b"
+      ],
+      "output": "a2"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "a2",
+        "w3"
+      ],
+      "output": "h3"
+    },
+    {
+      "op": "Add",
+      "inputs": [
+        "h3",
+        "b3"
+      ],
+      "output": "logits"
+    }
+  ],
+  "loss": {
+    "cross_entropy": {
+      "prediction": "logits",
+      "target": {
+        "name": "y",
+        "shape": [
+          0
+        ],
+        "dtype": "i64"
+      }
+    }
+  }
+}

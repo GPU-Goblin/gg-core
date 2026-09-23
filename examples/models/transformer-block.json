@@ -1,0 +1,253 @@
+{
+  "format": "gg-graph/v1",
+  "name": "transformer-block",
+  "inputs": [
+    {
+      "name": "ids",
+      "shape": [
+        0,
+        128
+      ],
+      "dtype": "i64"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "emb",
+      "shape": [
+        32000,
+        256
+      ],
+      "init": {
+        "normal": {
+          "std": 0.02
+        }
+      }
+    },
+    {
+      "name": "wq",
+      "shape": [
+        256,
+        256
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wk",
+      "shape": [
+        256,
+        256
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wv",
+      "shape": [
+        256,
+        256
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wo",
+      "shape": [
+        256,
+        256
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wu",
+      "shape": [
+        256,
+        1024
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wd",
+      "shape": [
+        1024,
+        256
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wlm",
+      "shape": [
+        256,
+        32000
+      ],
+      "init": "xavier_uniform"
+    }
+  ],
+  "nodes": [
+    {
+      "op": "Gather",
+      "inputs": [
+        "emb",
+        "ids"
+      ],
+      "output": "h0"
+    },
+    {
+      "op": "RMSNorm",
+      "inputs": [
+        "h0"
+      ],
+      "output": "n0"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "n0",
+        "wq"
+      ],
+      "output": "q"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "n0",
+        "wk"
+      ],
+      "output": "k"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "n0",
+        "wv"
+      ],
+      "output": "v"
+    },
+    {
+      "op": "Transpose",
+      "inputs": [
+        "k"
+      ],
+      "output": "kt",
+      "attrs": {
+        "perm": [
+          0,
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "q",
+        "kt"
+      ],
+      "output": "scores"
+    },
+    {
+      "op": "Softmax",
+      "inputs": [
+        "scores"
+      ],
+      "output": "weights",
+      "attrs": {
+        "axis": 2
+      }
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "weights",
+        "v"
+      ],
+      "output": "ctx"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "ctx",
+        "wo"
+      ],
+      "output": "attn"
+    },
+    {
+      "op": "Add",
+      "inputs": [
+        "h0",
+        "attn"
+      ],
+      "output": "h1"
+    },
+    {
+      "op": "RMSNorm",
+      "inputs": [
+        "h1"
+      ],
+      "output": "n1"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "n1",
+        "wu"
+      ],
+      "output": "up"
+    },
+    {
+      "op": "Gelu",
+      "inputs": [
+        "up"
+      ],
+      "output": "act"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "act",
+        "wd"
+      ],
+      "output": "down"
+    },
+    {
+      "op": "Add",
+      "inputs": [
+        "h1",
+        "down"
+      ],
+      "output": "h2"
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "h2",
+        "wlm"
+      ],
+      "output": "seqlogits"
+    },
+    {
+      "op": "Reshape",
+      "inputs": [
+        "seqlogits"
+      ],
+      "output": "logits",
+      "attrs": {
+        "shape": [
+          -1,
+          32000
+        ]
+      }
+    }
+  ],
+  "loss": {
+    "cross_entropy": {
+      "prediction": "logits",
+      "target": {
+        "name": "y",
+        "shape": [
+          0,
+          128
+        ],
+        "dtype": "i64"
+      }
+    }
+  }
+}

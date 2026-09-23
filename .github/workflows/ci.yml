@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  rust:
+    name: fmt, clippy, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: rustup show   # rust-toolchain.toml pins the version
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      # The runners have no GPU: the GPU variant is only compiled here. Its tests run on
+      # identified hardware (README), and an ignored GPU test is not a success.
+      - name: GPU variant compiles
+        run: cargo clippy -p gg-compute --features gpu --all-targets -- -D warnings

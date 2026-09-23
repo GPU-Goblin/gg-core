@@ -1,0 +1,64 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/gg-core",
+    "crates/gg-protocol",
+    "crates/gg-compute",
+    "crates/gg-client",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96"
+# Free for research and any noncommercial use; source-available, not open source.
+# LICENSE holds the authoritative text; LICENSING.md explains it.
+license = "PolyForm-Noncommercial-1.0.0"
+license-file = "LICENSE"
+repository = "https://github.com/GPU-Goblin/gg-core"
+publish = false
+
+[workspace.dependencies]
+# --- domain / protocol ---
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.151", features = ["float_roundtrip"] }
+serde_bytes = "0.11.19"
+serde_ipld_dagcbor = { version = "0.7.0", default-features = false, features = ["std"] }
+sha2 = "0.11.0"
+ed25519-dalek = { version = "3.0.0", default-features = false, features = ["fast", "zeroize"] }
+getrandom = "0.4.3"
+hex = "0.4.3"
+uuid = { version = "1.26.1", features = ["v7", "serde"] }
+thiserror = "2.0.20"
+zeroize = "1.9.0"
+
+# --- async / web ---
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "signal", "fs", "io-util", "time", "sync", "process", "net"] }
+tokio-util = { version = "0.7.19", features = ["io"] }
+futures-util = "0.3.34"
+axum = { version = "0.8.9", features = ["json", "tokio", "http1", "macros"] }
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json", "stream", "http2", "charset", "form"] }
+utoipa = { version = "5.5.0", features = ["axum_extras", "uuid", "time"] }
+
+# --- persistence ---
+tempfile = "3.27.0"
+
+# --- config / cli / observability ---
+tracing = "0.1.44"
+
+# --- compute ---
+burn = { version = "=0.21.0", default-features = false, features = ["std", "flex", "autodiff"] }
+
+# --- tests ---
+proptest = "1.11.0"
+
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+debug = 1
+
+# The native CUDA engine needs burn-tch not to write in place into tensors PyTorch's autograd
+# tracks (vendor/burn-tch/GPU-GOBLIN.md in gg-core).
+[patch.crates-io]
+burn-tch = { path = "vendor/burn-tch" }

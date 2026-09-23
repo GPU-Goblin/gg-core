@@ -1,0 +1,161 @@
+{
+  "format": "gg-graph/v1",
+  "name": "cnn-cifar",
+  "inputs": [
+    {
+      "name": "x",
+      "shape": [
+        0,
+        3,
+        32,
+        32
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "name": "k1",
+      "shape": [
+        32,
+        3,
+        3,
+        3
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "k2",
+      "shape": [
+        64,
+        32,
+        3,
+        3
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "wd",
+      "shape": [
+        4096,
+        10
+      ],
+      "init": "xavier_uniform"
+    },
+    {
+      "name": "bd",
+      "shape": [
+        1,
+        10
+      ],
+      "init": "zeros"
+    }
+  ],
+  "nodes": [
+    {
+      "op": "Conv2d",
+      "inputs": [
+        "x",
+        "k1"
+      ],
+      "output": "c1",
+      "attrs": {
+        "padding": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "op": "Relu",
+      "inputs": [
+        "c1"
+      ],
+      "output": "r1"
+    },
+    {
+      "op": "MaxPool2d",
+      "inputs": [
+        "r1"
+      ],
+      "output": "p1",
+      "attrs": {
+        "kernel": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "op": "Conv2d",
+      "inputs": [
+        "p1",
+        "k2"
+      ],
+      "output": "c2",
+      "attrs": {
+        "padding": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "op": "Relu",
+      "inputs": [
+        "c2"
+      ],
+      "output": "r2"
+    },
+    {
+      "op": "MaxPool2d",
+      "inputs": [
+        "r2"
+      ],
+      "output": "p2",
+      "attrs": {
+        "kernel": [
+          2,
+          2
+        ]
+      }
+    },
+    {
+      "op": "Flatten",
+      "inputs": [
+        "p2"
+      ],
+      "output": "f",
+      "attrs": {
+        "axis": 1
+      }
+    },
+    {
+      "op": "MatMul",
+      "inputs": [
+        "f",
+        "wd"
+      ],
+      "output": "h"
+    },
+    {
+      "op": "Add",
+      "inputs": [
+        "h",
+        "bd"
+      ],
+      "output": "logits"
+    }
+  ],
+  "loss": {
+    "cross_entropy": {
+      "prediction": "logits",
+      "target": {
+        "name": "y",
+        "shape": [
+          0
+        ],
+        "dtype": "i64"
+      }
+    }
+  }
+}

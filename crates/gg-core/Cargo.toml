@@ -1,0 +1,25 @@
+[package]
+name = "gg-core"
+description = "GPU Goblin domain model: identifiers, states, transitions, credits, invariants (no I/O)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+# OpenAPI schema impls for API documentation (no runtime behavior).
+openapi = ["dep:utoipa"]
+
+[dependencies]
+serde = { workspace = true }
+utoipa = { workspace = true, optional = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+serde_json = { workspace = true }

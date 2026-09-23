@@ -1,0 +1,1174 @@
+{
+ "format": "gg-graph/v1",
+ "name": "mixtral-mini",
+ "inputs": [
+  {
+   "name": "x",
+   "shape": [
+    0,
+    6
+   ],
+   "dtype": "i64"
+  }
+ ],
+ "parameters": [
+  {
+   "name": "inner.model.embed_tokens.weight",
+   "shape": [
+    32,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.self_attn.q_proj.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.self_attn.k_proj.weight",
+   "shape": [
+    8,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.self_attn.v_proj.weight",
+   "shape": [
+    8,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.self_attn.o_proj.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.mlp.gate.weight",
+   "shape": [
+    4,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.mlp.experts.gate_up_proj",
+   "shape": [
+    4,
+    32,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.mlp.experts.down_proj",
+   "shape": [
+    4,
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.input_layernorm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.layers.0.post_attention_layernorm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.model.norm.weight",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.lm_head.weight",
+   "shape": [
+    32,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "const.0",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": 1e-05
+    }
+   },
+   "trainable": false
+  },
+  {
+   "name": "pos.rotary_cos.0",
+   "shape": [
+    1,
+    1,
+    6,
+    8
+   ],
+   "init": {
+    "rotary_cos": {
+     "base": 1000000.0
+    }
+   },
+   "trainable": false
+  },
+  {
+   "name": "const.1",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": -1.0
+    }
+   },
+   "trainable": false
+  },
+  {
+   "name": "pos.rotary_sin.1",
+   "shape": [
+    1,
+    1,
+    6,
+    8
+   ],
+   "init": {
+    "rotary_sin": {
+     "base": 1000000.0
+    }
+   },
+   "trainable": false
+  },
+  {
+   "name": "const.2",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": 0.3535533905932738
+    }
+   },
+   "trainable": false
+  }
+ ],
+ "nodes": [
+  {
+   "op": "Gather",
+   "inputs": [
+    "inner.model.embed_tokens.weight",
+    "x"
+   ],
+   "output": "embedding"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "embedding",
+    "embedding"
+   ],
+   "output": "pow_1"
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "pow_1"
+   ],
+   "output": "mean",
+   "attrs": {
+    "axis": 2,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "mean",
+    "const.0"
+   ],
+   "output": "add_3"
+  },
+  {
+   "op": "Rsqrt",
+   "inputs": [
+    "add_3"
+   ],
+   "output": "rsqrt"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "embedding",
+    "rsqrt"
+   ],
+   "output": "mul_2"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "inner.model.layers.0.input_layernorm.weight",
+    "mul_2"
+   ],
+   "output": "mul_3"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.model.layers.0.self_attn.q_proj.weight"
+   ],
+   "output": "linear_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "mul_3",
+    "linear_wT"
+   ],
+   "output": "linear"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "linear"
+   ],
+   "output": "view",
+   "attrs": {
+    "shape": [
+     -1,
+     6,
+     2,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "view"
+   ],
+   "output": "transpose_1",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.model.layers.0.self_attn.k_proj.weight"
+   ],
+   "output": "linear_1_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "mul_3",
+    "linear_1_wT"
+   ],
+   "output": "linear_1"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "linear_1"
+   ],
+   "output": "view_1",
+   "attrs": {
+    "shape": [
+     -1,
+     6,
+     1,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "view_1"
+   ],
+   "output": "transpose_2",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.model.layers.0.self_attn.v_proj.weight"
+   ],
+   "output": "linear_2_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "mul_3",
+    "linear_2_wT"
+   ],
+   "output": "linear_2"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "linear_2"
+   ],
+   "output": "view_2",
+   "attrs": {
+    "shape": [
+     -1,
+     6,
+     1,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "view_2"
+   ],
+   "output": "transpose_3",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "transpose_1",
+    "pos.rotary_cos.0"
+   ],
+   "output": "mul_4"
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "transpose_1"
+   ],
+   "output": "slice_2",
+   "attrs": {
+    "axis": 3,
+    "start": 0,
+    "end": 4
+   }
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "transpose_1"
+   ],
+   "output": "slice_3",
+   "attrs": {
+    "axis": 3,
+    "start": 4,
+    "end": 8
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "slice_3",
+    "const.1"
+   ],
+   "output": "neg"
+  },
+  {
+   "op": "Concat",
+   "inputs": [
+    "neg",
+    "slice_2"
+   ],
+   "output": "cat_1",
+   "attrs": {
+    "axis": 3
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "cat_1",
+    "pos.rotary_sin.1"
+   ],
+   "output": "mul_5"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "mul_4",
+    "mul_5"
+   ],
+   "output": "add_4"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "transpose_2",
+    "pos.rotary_cos.0"
+   ],
+   "output": "mul_6"
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "transpose_2"
+   ],
+   "output": "slice_4",
+   "attrs": {
+    "axis": 3,
+    "start": 0,
+    "end": 4
+   }
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "transpose_2"
+   ],
+   "output": "slice_5",
+   "attrs": {
+    "axis": 3,
+    "start": 4,
+    "end": 8
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "slice_5",
+    "const.1"
+   ],
+   "output": "neg_1"
+  },
+  {
+   "op": "Concat",
+   "inputs": [
+    "neg_1",
+    "slice_4"
+   ],
+   "output": "cat_2",
+   "attrs": {
+    "axis": 3
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "cat_2",
+    "pos.rotary_sin.1"
+   ],
+   "output": "mul_7"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "mul_6",
+    "mul_7"
+   ],
+   "output": "add_5"
+  },
+  {
+   "op": "Concat",
+   "inputs": [
+    "add_5",
+    "add_5"
+   ],
+   "output": "reshape_rep0_0",
+   "attrs": {
+    "axis": 2
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "reshape_rep0_0"
+   ],
+   "output": "reshape_heads",
+   "attrs": {
+    "shape": [
+     -1,
+     2,
+     6,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Concat",
+   "inputs": [
+    "transpose_3",
+    "transpose_3"
+   ],
+   "output": "reshape_1_rep0_0",
+   "attrs": {
+    "axis": 2
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "reshape_1_rep0_0"
+   ],
+   "output": "reshape_1_heads",
+   "attrs": {
+    "shape": [
+     -1,
+     2,
+     6,
+     8
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "reshape_heads"
+   ],
+   "output": "scaled_dot_product_attention_kT",
+   "attrs": {
+    "perm": [
+     0,
+     1,
+     3,
+     2
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "add_4",
+    "scaled_dot_product_attention_kT"
+   ],
+   "output": "scaled_dot_product_attention_scores"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "scaled_dot_product_attention_scores",
+    "const.2"
+   ],
+   "output": "scaled_dot_product_attention_scaled"
+  },
+  {
+   "op": "CausalMask",
+   "inputs": [
+    "scaled_dot_product_attention_scaled"
+   ],
+   "output": "scaled_dot_product_attention_masked"
+  },
+  {
+   "op": "Softmax",
+   "inputs": [
+    "scaled_dot_product_attention_masked"
+   ],
+   "output": "scaled_dot_product_attention_weights",
+   "attrs": {
+    "axis": 3
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "scaled_dot_product_attention_weights",
+    "reshape_1_heads"
+   ],
+   "output": "scaled_dot_product_attention"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "scaled_dot_product_attention"
+   ],
+   "output": "transpose_4",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "transpose_4"
+   ],
+   "output": "reshape_2",
+   "attrs": {
+    "shape": [
+     -1,
+     6,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.model.layers.0.self_attn.o_proj.weight"
+   ],
+   "output": "linear_3_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "reshape_2",
+    "linear_3_wT"
+   ],
+   "output": "linear_3"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "embedding",
+    "linear_3"
+   ],
+   "output": "add_6"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "add_6",
+    "add_6"
+   ],
+   "output": "pow_2"
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "pow_2"
+   ],
+   "output": "mean_1",
+   "attrs": {
+    "axis": 2,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "mean_1",
+    "const.0"
+   ],
+   "output": "add_7"
+  },
+  {
+   "op": "Rsqrt",
+   "inputs": [
+    "add_7"
+   ],
+   "output": "rsqrt_1"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "add_6",
+    "rsqrt_1"
+   ],
+   "output": "mul_8"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "inner.model.layers.0.post_attention_layernorm.weight",
+    "mul_8"
+   ],
+   "output": "mul_9"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "mul_9"
+   ],
+   "output": "view_3",
+   "attrs": {
+    "shape": [
+     -1,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.model.layers.0.mlp.gate.weight"
+   ],
+   "output": "linear_4_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "view_3",
+    "linear_4_wT"
+   ],
+   "output": "linear_4"
+  },
+  {
+   "op": "Softmax",
+   "inputs": [
+    "linear_4"
+   ],
+   "output": "softmax",
+   "attrs": {
+    "axis": -1
+   }
+  },
+  {
+   "op": "ArgTopK",
+   "inputs": [
+    "softmax"
+   ],
+   "output": "topk_i",
+   "attrs": {
+    "axis": 1,
+    "k": 2,
+    "largest": 1
+   }
+  },
+  {
+   "op": "GatherElements",
+   "inputs": [
+    "softmax",
+    "topk_i"
+   ],
+   "output": "topk_v",
+   "attrs": {
+    "axis": 1
+   }
+  },
+  {
+   "op": "ReduceSum",
+   "inputs": [
+    "topk_v"
+   ],
+   "output": "sum_1",
+   "attrs": {
+    "axis": 1,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Div",
+   "inputs": [
+    "topk_v",
+    "sum_1"
+   ],
+   "output": "div_"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "view_3"
+   ],
+   "output": "repeat_interleave_u",
+   "attrs": {
+    "shape": [
+     -1,
+     1,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Concat",
+   "inputs": [
+    "repeat_interleave_u",
+    "repeat_interleave_u"
+   ],
+   "output": "repeat_interleave_rep0_0",
+   "attrs": {
+    "axis": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "repeat_interleave_rep0_0"
+   ],
+   "output": "repeat_interleave_r",
+   "attrs": {
+    "shape": [
+     -1,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "div_"
+   ],
+   "output": "reshape_4",
+   "attrs": {
+    "shape": [
+     -1
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "topk_i"
+   ],
+   "output": "reshape_5",
+   "attrs": {
+    "shape": [
+     -1
+    ]
+   }
+  },
+  {
+   "op": "Gather",
+   "inputs": [
+    "inner.model.layers.0.mlp.experts.gate_up_proj",
+    "reshape_5"
+   ],
+   "output": "index_2"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "repeat_interleave_r"
+   ],
+   "output": "unsqueeze_20",
+   "attrs": {
+    "shape": [
+     -1,
+     16,
+     1
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "index_2",
+    "unsqueeze_20"
+   ],
+   "output": "bmm"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "bmm"
+   ],
+   "output": "squeeze",
+   "attrs": {
+    "shape": [
+     -1,
+     32
+    ]
+   }
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "squeeze"
+   ],
+   "output": "chunk_0",
+   "attrs": {
+    "axis": 1,
+    "start": 0,
+    "end": 16
+   }
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "squeeze"
+   ],
+   "output": "chunk_1",
+   "attrs": {
+    "axis": 1,
+    "start": 16,
+    "end": 32
+   }
+  },
+  {
+   "op": "Sigmoid",
+   "inputs": [
+    "chunk_0"
+   ],
+   "output": "silu_sig"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "chunk_0",
+    "silu_sig"
+   ],
+   "output": "silu"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "silu",
+    "chunk_1"
+   ],
+   "output": "mul_10"
+  },
+  {
+   "op": "Gather",
+   "inputs": [
+    "inner.model.layers.0.mlp.experts.down_proj",
+    "reshape_5"
+   ],
+   "output": "index_3"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "mul_10"
+   ],
+   "output": "unsqueeze_21",
+   "attrs": {
+    "shape": [
+     -1,
+     16,
+     1
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "index_3",
+    "unsqueeze_21"
+   ],
+   "output": "bmm_1"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "bmm_1"
+   ],
+   "output": "squeeze_1",
+   "attrs": {
+    "shape": [
+     -1,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "reshape_4"
+   ],
+   "output": "unsqueeze_22",
+   "attrs": {
+    "shape": [
+     -1,
+     1
+    ]
+   }
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "squeeze_1",
+    "unsqueeze_22"
+   ],
+   "output": "mul_11"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "mul_11"
+   ],
+   "output": "view_4",
+   "attrs": {
+    "shape": [
+     -1,
+     2,
+     16
+    ]
+   }
+  },
+  {
+   "op": "ReduceSum",
+   "inputs": [
+    "view_4"
+   ],
+   "output": "sum_2",
+   "attrs": {
+    "axis": 1,
+    "keepdims": 0
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "sum_2"
+   ],
+   "output": "reshape_6",
+   "attrs": {
+    "shape": [
+     -1,
+     6,
+     16
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "add_6",
+    "reshape_6"
+   ],
+   "output": "add_8"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "add_8",
+    "add_8"
+   ],
+   "output": "pow_3"
+  },
+  {
+   "op": "ReduceMean",
+   "inputs": [
+    "pow_3"
+   ],
+   "output": "mean_2",
+   "attrs": {
+    "axis": 2,
+    "keepdims": 1
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "mean_2",
+    "const.0"
+   ],
+   "output": "add_9"
+  },
+  {
+   "op": "Rsqrt",
+   "inputs": [
+    "add_9"
+   ],
+   "output": "rsqrt_2"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "add_8",
+    "rsqrt_2"
+   ],
+   "output": "mul_12"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "inner.model.norm.weight",
+    "mul_12"
+   ],
+   "output": "mul_13"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "inner.lm_head.weight"
+   ],
+   "output": "linear_5_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "mul_13",
+    "linear_5_wT"
+   ],
+   "output": "linear_5"
+  }
+ ],
+ "loss": {
+  "mean_squared_error": {
+   "prediction": "linear_5",
+   "target": {
+    "name": "y",
+    "shape": [
+     0,
+     6,
+     32
+    ],
+    "dtype": "f32"
+   }
+  }
+ }
+}

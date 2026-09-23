@@ -1,0 +1,1280 @@
+{
+ "format": "gg-graph/v1",
+ "name": "hifigan-mini",
+ "inputs": [
+  {
+   "name": "x",
+   "shape": [
+    0,
+    6,
+    8
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "parameters": [
+  {
+   "name": "inner.conv_pre.weight",
+   "shape": [
+    16,
+    8,
+    7
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.conv_pre.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.upsampler.0.weight",
+   "shape": [
+    16,
+    8,
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.upsampler.0.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.upsampler.1.weight",
+   "shape": [
+    8,
+    4,
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.upsampler.1.bias",
+   "shape": [
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs1.0.weight",
+   "shape": [
+    8,
+    8,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs1.0.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs1.1.weight",
+   "shape": [
+    8,
+    8,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs1.1.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs2.0.weight",
+   "shape": [
+    8,
+    8,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs2.0.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs2.1.weight",
+   "shape": [
+    8,
+    8,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.0.convs2.1.bias",
+   "shape": [
+    8
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs1.0.weight",
+   "shape": [
+    4,
+    4,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs1.0.bias",
+   "shape": [
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs1.1.weight",
+   "shape": [
+    4,
+    4,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs1.1.bias",
+   "shape": [
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs2.0.weight",
+   "shape": [
+    4,
+    4,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs2.0.bias",
+   "shape": [
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs2.1.weight",
+   "shape": [
+    4,
+    4,
+    3
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.resblocks.1.convs2.1.bias",
+   "shape": [
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.conv_post.weight",
+   "shape": [
+    1,
+    4,
+    7
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "inner.conv_post.bias",
+   "shape": [
+    1
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "const.0",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": 0.0
+    }
+   },
+   "trainable": false
+  },
+  {
+   "name": "const.1",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": 1.0
+    }
+   },
+   "trainable": false
+  }
+ ],
+ "nodes": [
+  {
+   "op": "Sub",
+   "inputs": [
+    "x",
+    "const.0"
+   ],
+   "output": "sub"
+  },
+  {
+   "op": "Div",
+   "inputs": [
+    "sub",
+    "const.1"
+   ],
+   "output": "div"
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "div"
+   ],
+   "output": "transpose",
+   "attrs": {
+    "perm": [
+     0,
+     2,
+     1
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "transpose"
+   ],
+   "output": "conv1d_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     6
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.conv_pre.weight"
+   ],
+   "output": "conv1d_w4",
+   "attrs": {
+    "shape": [
+     16,
+     8,
+     1,
+     7
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_x4",
+    "conv1d_w4",
+    "inner.conv_pre.bias"
+   ],
+   "output": "conv1d_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     3
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_2d"
+   ],
+   "output": "conv1d",
+   "attrs": {
+    "shape": [
+     -1,
+     16,
+     6
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv1d"
+   ],
+   "output": "leaky_relu",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu"
+   ],
+   "output": "conv_transpose1d_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     16,
+     1,
+     6
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.upsampler.0.weight"
+   ],
+   "output": "conv_transpose1d_w4",
+   "attrs": {
+    "shape": [
+     16,
+     8,
+     1,
+     8
+    ]
+   }
+  },
+  {
+   "op": "ConvTranspose2d",
+   "inputs": [
+    "conv_transpose1d_x4",
+    "conv_transpose1d_w4",
+    "inner.upsampler.0.bias"
+   ],
+   "output": "conv_transpose1d_2d",
+   "attrs": {
+    "stride": [
+     1,
+     4
+    ],
+    "padding": [
+     0,
+     2
+    ],
+    "output_padding": [
+     0,
+     0
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv_transpose1d_2d"
+   ],
+   "output": "conv_transpose1d",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv_transpose1d"
+   ],
+   "output": "leaky_relu_1",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_1"
+   ],
+   "output": "conv1d_1_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.0.convs1.0.weight"
+   ],
+   "output": "conv1d_1_w4",
+   "attrs": {
+    "shape": [
+     8,
+     8,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_1_x4",
+    "conv1d_1_w4",
+    "inner.resblocks.0.convs1.0.bias"
+   ],
+   "output": "conv1d_1_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_1_2d"
+   ],
+   "output": "conv1d_1",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv1d_1"
+   ],
+   "output": "leaky_relu_2",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_2"
+   ],
+   "output": "conv1d_2_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.0.convs2.0.weight"
+   ],
+   "output": "conv1d_2_w4",
+   "attrs": {
+    "shape": [
+     8,
+     8,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_2_x4",
+    "conv1d_2_w4",
+    "inner.resblocks.0.convs2.0.bias"
+   ],
+   "output": "conv1d_2_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_2_2d"
+   ],
+   "output": "conv1d_2",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "conv1d_2",
+    "conv_transpose1d"
+   ],
+   "output": "add"
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "add"
+   ],
+   "output": "leaky_relu_3",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_3"
+   ],
+   "output": "conv1d_3_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.0.convs1.1.weight"
+   ],
+   "output": "conv1d_3_w4",
+   "attrs": {
+    "shape": [
+     8,
+     8,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_3_x4",
+    "conv1d_3_w4",
+    "inner.resblocks.0.convs1.1.bias"
+   ],
+   "output": "conv1d_3_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     3
+    ],
+    "dilation": [
+     1,
+     3
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_3_2d"
+   ],
+   "output": "conv1d_3",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv1d_3"
+   ],
+   "output": "leaky_relu_4",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_4"
+   ],
+   "output": "conv1d_4_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.0.convs2.1.weight"
+   ],
+   "output": "conv1d_4_w4",
+   "attrs": {
+    "shape": [
+     8,
+     8,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_4_x4",
+    "conv1d_4_w4",
+    "inner.resblocks.0.convs2.1.bias"
+   ],
+   "output": "conv1d_4_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_4_2d"
+   ],
+   "output": "conv1d_4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "conv1d_4",
+    "add"
+   ],
+   "output": "add_1"
+  },
+  {
+   "op": "Div",
+   "inputs": [
+    "add_1",
+    "const.1"
+   ],
+   "output": "div_1"
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "div_1"
+   ],
+   "output": "leaky_relu_5",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_5"
+   ],
+   "output": "conv_transpose1d_1_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     8,
+     1,
+     24
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.upsampler.1.weight"
+   ],
+   "output": "conv_transpose1d_1_w4",
+   "attrs": {
+    "shape": [
+     8,
+     4,
+     1,
+     4
+    ]
+   }
+  },
+  {
+   "op": "ConvTranspose2d",
+   "inputs": [
+    "conv_transpose1d_1_x4",
+    "conv_transpose1d_1_w4",
+    "inner.upsampler.1.bias"
+   ],
+   "output": "conv_transpose1d_1_2d",
+   "attrs": {
+    "stride": [
+     1,
+     2
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "output_padding": [
+     0,
+     0
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv_transpose1d_1_2d"
+   ],
+   "output": "conv_transpose1d_1",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv_transpose1d_1"
+   ],
+   "output": "leaky_relu_6",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_6"
+   ],
+   "output": "conv1d_5_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     1,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.1.convs1.0.weight"
+   ],
+   "output": "conv1d_5_w4",
+   "attrs": {
+    "shape": [
+     4,
+     4,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_5_x4",
+    "conv1d_5_w4",
+    "inner.resblocks.1.convs1.0.bias"
+   ],
+   "output": "conv1d_5_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_5_2d"
+   ],
+   "output": "conv1d_5",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv1d_5"
+   ],
+   "output": "leaky_relu_7",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_7"
+   ],
+   "output": "conv1d_6_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     1,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.1.convs2.0.weight"
+   ],
+   "output": "conv1d_6_w4",
+   "attrs": {
+    "shape": [
+     4,
+     4,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_6_x4",
+    "conv1d_6_w4",
+    "inner.resblocks.1.convs2.0.bias"
+   ],
+   "output": "conv1d_6_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_6_2d"
+   ],
+   "output": "conv1d_6",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "conv1d_6",
+    "conv_transpose1d_1"
+   ],
+   "output": "add_2"
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "add_2"
+   ],
+   "output": "leaky_relu_8",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_8"
+   ],
+   "output": "conv1d_7_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     1,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.1.convs1.1.weight"
+   ],
+   "output": "conv1d_7_w4",
+   "attrs": {
+    "shape": [
+     4,
+     4,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_7_x4",
+    "conv1d_7_w4",
+    "inner.resblocks.1.convs1.1.bias"
+   ],
+   "output": "conv1d_7_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     3
+    ],
+    "dilation": [
+     1,
+     3
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_7_2d"
+   ],
+   "output": "conv1d_7",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "conv1d_7"
+   ],
+   "output": "leaky_relu_9",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.1"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_9"
+   ],
+   "output": "conv1d_8_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     1,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.resblocks.1.convs2.1.weight"
+   ],
+   "output": "conv1d_8_w4",
+   "attrs": {
+    "shape": [
+     4,
+     4,
+     1,
+     3
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_8_x4",
+    "conv1d_8_w4",
+    "inner.resblocks.1.convs2.1.bias"
+   ],
+   "output": "conv1d_8_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     1
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_8_2d"
+   ],
+   "output": "conv1d_8",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "conv1d_8",
+    "add_2"
+   ],
+   "output": "add_3"
+  },
+  {
+   "op": "Div",
+   "inputs": [
+    "add_3",
+    "const.1"
+   ],
+   "output": "div_2"
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "div_2"
+   ],
+   "output": "leaky_relu_10",
+   "attrs": {
+    "expr": "relu(a) - relu(-a) * 0.01"
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "leaky_relu_10"
+   ],
+   "output": "conv1d_9_x4",
+   "attrs": {
+    "shape": [
+     -1,
+     4,
+     1,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "inner.conv_post.weight"
+   ],
+   "output": "conv1d_9_w4",
+   "attrs": {
+    "shape": [
+     1,
+     4,
+     1,
+     7
+    ]
+   }
+  },
+  {
+   "op": "Conv2d",
+   "inputs": [
+    "conv1d_9_x4",
+    "conv1d_9_w4",
+    "inner.conv_post.bias"
+   ],
+   "output": "conv1d_9_2d",
+   "attrs": {
+    "stride": [
+     1,
+     1
+    ],
+    "padding": [
+     0,
+     3
+    ],
+    "dilation": [
+     1,
+     1
+    ],
+    "groups": 1
+   }
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "conv1d_9_2d"
+   ],
+   "output": "conv1d_9",
+   "attrs": {
+    "shape": [
+     -1,
+     1,
+     48
+    ]
+   }
+  },
+  {
+   "op": "Tanh",
+   "inputs": [
+    "conv1d_9"
+   ],
+   "output": "tanh"
+  },
+  {
+   "op": "Reshape",
+   "inputs": [
+    "tanh"
+   ],
+   "output": "squeeze",
+   "attrs": {
+    "shape": [
+     -1,
+     48
+    ]
+   }
+  }
+ ],
+ "loss": {
+  "mean_squared_error": {
+   "prediction": "squeeze",
+   "target": {
+    "name": "y",
+    "shape": [
+     0,
+     48
+    ],
+    "dtype": "f32"
+   }
+  }
+ }
+}

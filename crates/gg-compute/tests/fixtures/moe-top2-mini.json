@@ -1,0 +1,433 @@
+{
+ "format": "gg-graph/v1",
+ "name": "moe-top2-mini",
+ "inputs": [
+  {
+   "name": "x",
+   "shape": [
+    0,
+    5,
+    16
+   ],
+   "dtype": "f32"
+  }
+ ],
+ "parameters": [
+  {
+   "name": "router.weight",
+   "shape": [
+    4,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "router.bias",
+   "shape": [
+    4
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.0.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.0.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.1.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.1.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.2.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.2.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.3.weight",
+   "shape": [
+    16,
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "experts.3.bias",
+   "shape": [
+    16
+   ],
+   "init": "zeros"
+  },
+  {
+   "name": "const.0",
+   "shape": [
+    1
+   ],
+   "init": {
+    "constant": {
+     "value": 0.0
+    }
+   },
+   "trainable": false
+  }
+ ],
+ "nodes": [
+  {
+   "op": "Transpose",
+   "inputs": [
+    "router.weight"
+   ],
+   "output": "linear_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "x",
+    "linear_wT"
+   ],
+   "output": "linear"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear",
+    "router.bias"
+   ],
+   "output": "linear_b"
+  },
+  {
+   "op": "ArgTopK",
+   "inputs": [
+    "linear_b"
+   ],
+   "output": "topk_i",
+   "attrs": {
+    "axis": 2,
+    "k": 2,
+    "largest": 1
+   }
+  },
+  {
+   "op": "GatherElements",
+   "inputs": [
+    "linear_b",
+    "topk_i"
+   ],
+   "output": "topk_v",
+   "attrs": {
+    "axis": 2
+   }
+  },
+  {
+   "op": "Formula",
+   "inputs": [
+    "linear_b"
+   ],
+   "output": "zeros_like",
+   "attrs": {
+    "expr": "a * 0"
+   }
+  },
+  {
+   "op": "Softmax",
+   "inputs": [
+    "topk_v"
+   ],
+   "output": "softmax",
+   "attrs": {
+    "axis": -1
+   }
+  },
+  {
+   "op": "ScatterElements",
+   "inputs": [
+    "zeros_like",
+    "topk_i",
+    "softmax"
+   ],
+   "output": "scatter",
+   "attrs": {
+    "axis": 2,
+    "reduction": "none"
+   }
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "scatter"
+   ],
+   "output": "slice_1",
+   "attrs": {
+    "axis": 2,
+    "start": 0,
+    "end": 1
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "experts.0.weight"
+   ],
+   "output": "linear_1_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "x",
+    "linear_1_wT"
+   ],
+   "output": "linear_1"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_1",
+    "experts.0.bias"
+   ],
+   "output": "linear_1_b"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "slice_1",
+    "linear_1_b"
+   ],
+   "output": "mul"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "mul",
+    "const.0"
+   ],
+   "output": "add"
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "scatter"
+   ],
+   "output": "slice_2",
+   "attrs": {
+    "axis": 2,
+    "start": 1,
+    "end": 2
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "experts.1.weight"
+   ],
+   "output": "linear_2_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "x",
+    "linear_2_wT"
+   ],
+   "output": "linear_2"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_2",
+    "experts.1.bias"
+   ],
+   "output": "linear_2_b"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "slice_2",
+    "linear_2_b"
+   ],
+   "output": "mul_1"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "add",
+    "mul_1"
+   ],
+   "output": "add_1"
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "scatter"
+   ],
+   "output": "slice_3",
+   "attrs": {
+    "axis": 2,
+    "start": 2,
+    "end": 3
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "experts.2.weight"
+   ],
+   "output": "linear_3_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "x",
+    "linear_3_wT"
+   ],
+   "output": "linear_3"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_3",
+    "experts.2.bias"
+   ],
+   "output": "linear_3_b"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "slice_3",
+    "linear_3_b"
+   ],
+   "output": "mul_2"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "add_1",
+    "mul_2"
+   ],
+   "output": "add_2"
+  },
+  {
+   "op": "Slice",
+   "inputs": [
+    "scatter"
+   ],
+   "output": "slice_4",
+   "attrs": {
+    "axis": 2,
+    "start": 3,
+    "end": 4
+   }
+  },
+  {
+   "op": "Transpose",
+   "inputs": [
+    "experts.3.weight"
+   ],
+   "output": "linear_4_wT",
+   "attrs": {
+    "perm": [
+     1,
+     0
+    ]
+   }
+  },
+  {
+   "op": "MatMul",
+   "inputs": [
+    "x",
+    "linear_4_wT"
+   ],
+   "output": "linear_4"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "linear_4",
+    "experts.3.bias"
+   ],
+   "output": "linear_4_b"
+  },
+  {
+   "op": "Mul",
+   "inputs": [
+    "slice_4",
+    "linear_4_b"
+   ],
+   "output": "mul_3"
+  },
+  {
+   "op": "Add",
+   "inputs": [
+    "add_2",
+    "mul_3"
+   ],
+   "output": "add_3"
+  }
+ ],
+ "loss": {
+  "mean_squared_error": {
+   "prediction": "add_3",
+   "target": {
+    "name": "y",
+    "shape": [
+     0,
+     5,
+     16
+    ],
+    "dtype": "f32"
+   }
+  }
+ }
+}

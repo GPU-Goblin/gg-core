@@ -1,0 +1,12 @@
+{
+  "json": {
+    "artifact_hash": "c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1",
+    "chunk_index": 1,
+    "issued_at": 1760000000500,
+    "network": "gg-test-vectors",
+    "protocol_version": 1
+  },
+  "dagcbor_hex": "a5676e6574776f726b6f67672d746573742d766563746f7273696973737565645f61741b00000199c82cc1f46b6368756e6b5f696e646578016d61727469666163745f686173685820c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c17070726f746f636f6c5f76657273696f6e01",
+  "domain": "chunk-request",
+  "hash_hex": "a0032d169884baa08ab064129a04bfc73449e40326f797a37d5896962fdf2b76"
+}
