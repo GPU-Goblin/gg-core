@@ -103,3 +103,42 @@ async fn download_resumes_after_a_short_read_and_verifies_hash() {
     assert!(err.to_string().contains("mismatch"), "{err}");
     assert!(!dest2.exists() && !dir.path().join("blob2.part").exists());
 }
+
+/// A refusal keeps its status and the server's message: a `409` (not stored here, read it from
+/// peers) is what makes a worker or a validator turn to peers (ADR-0026, ADR-0041).
+#[tokio::test]
+async fn a_refused_download_reports_its_status_and_message() {
+    let app = Router::new().route(
+        "/v1/blob",
+        get(|| async {
+            (
+                StatusCode::CONFLICT,
+                [("content-type", "application/json")],
+                r#"{"message":"artifact held by a lab node: fetch it from peers"}"#,
+            )
+        }),
+    );
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+    let api = Api::new(&format!("http://{addr}")).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let dest = dir.path().join("blob");
+    let r = ArtifactRef {
+        hash: Sha256Digest::of_bytes(b"x"),
+        size: 1,
+    };
+    for result in [
+        api.download("t", "/blob", &r, 1 << 20, &dest).await,
+        api.download_retry("t", "/blob", &r, 1 << 20, &dest).await,
+    ] {
+        match result {
+            Err(gg_client::client::ClientError::Status { status, message }) => {
+                assert_eq!(status, 409);
+                assert!(message.contains("lab node"), "{message}");
+            }
+            other => panic!("expected a 409 status, got {other:?}"),
+        }
+    }
+    assert!(!dest.exists());
+}

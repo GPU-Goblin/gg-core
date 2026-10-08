@@ -288,6 +288,20 @@ pub fn ssh_public_key(key: &PublicKey) -> String {
     format!("{SSH_ED25519} {}", base64_encode(&ssh_public_key_blob(key)))
 }
 
+/// Parse an OpenSSH Ed25519 public key line (`ssh-ed25519 AAAA... [comment]`).
+pub fn parse_ssh_public_key(line: &str) -> Result<PublicKey, ReleaseError> {
+    let bad = |m: &str| ReleaseError::Signature(format!("public key: {m}"));
+    let mut parts = line.split_whitespace();
+    if parts.next() != Some(SSH_ED25519) {
+        return Err(bad("not an ssh-ed25519 key"));
+    }
+    let blob = parts
+        .next()
+        .and_then(base64_decode)
+        .ok_or_else(|| bad("invalid base64"))?;
+    parse_ssh_public_key_blob(&blob)
+}
+
 /// One line of an `allowed_signers` file that accepts this key for release signatures only
 /// (`ssh-keygen(1)`, section ALLOWED SIGNERS).
 pub fn allowed_signers_line(key: &PublicKey) -> String {
@@ -774,5 +788,19 @@ mod tests {
         let pubkey = std::fs::read_to_string(d.join("id.pub")).unwrap();
         assert_eq!(pubkey.trim(), ssh_public_key(&signer));
         assert!(sshsig_verify(&theirs, SSHSIG_NAMESPACE, b"something else").is_err());
+    }
+}
+
+#[cfg(test)]
+mod ssh_key_tests {
+    use super::*;
+
+    #[test]
+    fn an_ssh_public_key_line_round_trips() {
+        let key = crate::keys::SecretKey::generate().unwrap().public_key();
+        let line = format!("{} release@gpugoblin", ssh_public_key(&key));
+        assert_eq!(parse_ssh_public_key(&line).unwrap(), key);
+        assert!(parse_ssh_public_key("ssh-rsa AAAA").is_err());
+        assert!(parse_ssh_public_key("ssh-ed25519 !!!").is_err());
     }
 }

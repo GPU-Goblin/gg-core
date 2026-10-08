@@ -111,6 +111,34 @@ typed_id!(
     ValidatorId
 );
 typed_id!(
+    /// A lab node: the researcher's machine that holds and serves the artifacts of its runs
+    /// (ADR-0041).
+    NodeId
+);
+typed_id!(
+    /// Whoever reads an artifact from peers: a worker, a validator or a lab node, by the
+    /// identifier of its record (ADR-0041).
+    ReaderId
+);
+
+impl From<WorkerId> for ReaderId {
+    fn from(w: WorkerId) -> Self {
+        Self(w.0)
+    }
+}
+
+impl From<ValidatorId> for ReaderId {
+    fn from(v: ValidatorId) -> Self {
+        Self(v.0)
+    }
+}
+
+impl From<NodeId> for ReaderId {
+    fn from(n: NodeId) -> Self {
+        Self(n.0)
+    }
+}
+typed_id!(
     /// A result submission.
     SubmissionId
 );

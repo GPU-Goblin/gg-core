@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use gg_core::{
     AttemptId, AttemptRole, Credits, DecisionId, ExperimentId, JobId, LeaseId, NetworkId,
-    ProjectId, ReceiptId, ResourceLimits, Sha256Digest, TaskId, UnixMillis, ValidatorId,
+    ProjectId, ReaderId, ReceiptId, ResourceLimits, Sha256Digest, TaskId, UnixMillis, ValidatorId,
     VerificationOutcome, WorkerId,
 };
 use serde::{Deserialize, Serialize};
@@ -58,6 +58,10 @@ pub enum TaskParamsV1 {
     /// One stage of a model split between machines, forward or backward (P11 D2, ADR-0024).
     #[serde(rename = "graph.stage.v1")]
     GraphStage(GraphStageParamsV1),
+    /// Comparison of two computations of one task by two contributors (ADR-0042), computed by a
+    /// third contributor the server drew: the check of a comparison a lab node reported.
+    #[serde(rename = "replica.compare.v1")]
+    ReplicaCompare(ReplicaCompareParamsV1),
 }
 
 impl TaskParamsV1 {
@@ -69,6 +73,7 @@ impl TaskParamsV1 {
             TaskParamsV1::MlpGrad(_) => "mlp.grad.v1",
             TaskParamsV1::GraphGrad(_) => "graph.grad.v1",
             TaskParamsV1::GraphStage(_) => "graph.stage.v1",
+            TaskParamsV1::ReplicaCompare(_) => "replica.compare.v1",
         }
     }
 }
@@ -173,6 +178,25 @@ fn is_zero_u64(v: &u64) -> bool {
 
 fn is_false(v: &bool) -> bool {
     !*v
+}
+
+/// Parameters of `replica.compare.v1` (ADR-0042). Inputs: `a.<name>` and `b.<name>` for every name
+/// of `outputs`, the two computations' outputs. Output: `verdict`, JSON `{outcome, checks}`, the
+/// rule of `gg_compute::replica` applied to them.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ReplicaCompareParamsV1 {
+    /// Kind of the compared task (its comparison rule).
+    pub compared_kind: String,
+    /// The compared task's tolerance.
+    pub tolerance: ToleranceV1,
+    /// The compared task's bound on one output, bytes.
+    pub max_output_bytes: u64,
+    /// The compared task's output names.
+    pub outputs: Vec<String>,
+    /// Numeric profile side `a` declared.
+    pub profile_a: String,
+    /// Numeric profile side `b` declared.
+    pub profile_b: String,
 }
 
 /// Parameters of `graph.stage.v1` (P11 D2, ADR-0024): one stage of a graph split at
@@ -638,8 +662,9 @@ pub struct PeerTicketV1 {
     pub size: u64,
     /// Transport chunk size, likewise signed by the server.
     pub chunk_size: u32,
-    /// Worker record of the reader.
-    pub reader_id: WorkerId,
+    /// Record of the reader: a worker, or a lab node (ADR-0041). Same encoding as before: a
+    /// UUID.
+    pub reader_id: ReaderId,
     /// Key the reader must sign its requests with.
     pub reader_key: PublicKey,
     /// Server time.
@@ -660,6 +685,67 @@ impl PeerTicketV1 {
         }
         Some((start, (self.size - start).min(self.chunk_size as u64)))
     }
+}
+
+/// Short-lived permission, signed by the server, for a holder to push the chunks of one artifact
+/// to one reader over a connection the holder opens (ADR-0041, A8: the reversed connection, when
+/// the reader can be reached and the holder cannot). The reader accepts a push only with a ticket
+/// naming its own transport key and an artifact it is waiting for, and checks every chunk against
+/// the signed manifest: the ticket keeps strangers from filling its connection, the manifest keeps
+/// the bytes honest.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PushTicketV1 {
+    /// Protocol version.
+    pub protocol_version: u32,
+    /// Network.
+    pub network: NetworkId,
+    /// Artifact to push.
+    pub artifact_hash: Sha256Digest,
+    /// Total size.
+    pub size: u64,
+    /// Transport chunk size.
+    pub chunk_size: u32,
+    /// SHA-256 of the reader's TLS transport key: the holder pins it, the reader checks it is its
+    /// own.
+    pub reader_fingerprint: Sha256Digest,
+    /// Server time.
+    pub issued_at: UnixMillis,
+    /// Expiry (server time).
+    pub expires_at: UnixMillis,
+}
+
+/// One side of a [`ComparisonV1`]: a computation of the task, by the submission it made.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ComparedV1 {
+    /// Its task (the first computation's, or a replica's).
+    pub task_id: TaskId,
+    /// Its attempt.
+    pub attempt_id: AttemptId,
+    /// Hash of its signed result submission.
+    pub submission_hash: Sha256Digest,
+}
+
+/// The comparison of two computations of one task by two contributors (ADR-0042): whether their
+/// outputs agree within the task's tolerance, with the checks measured. Signed by whoever compared
+/// them; anyone holding both outputs can replay it.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ComparisonV1 {
+    /// Protocol version.
+    pub protocol_version: u32,
+    /// Network.
+    pub network: NetworkId,
+    /// The first computation's task: the family both belong to.
+    pub family: TaskId,
+    /// One side.
+    pub a: ComparedV1,
+    /// The other.
+    pub b: ComparedV1,
+    /// `accepted`: they agree; `rejected`: they differ; `inconclusive`: they could not be compared.
+    pub outcome: gg_core::VerificationOutcome,
+    /// The checks.
+    pub checks: Vec<CheckV1>,
+    /// When.
+    pub compared_at: UnixMillis,
 }
 
 /// One chunk request, signed by the reader with the key named in its ticket.
@@ -844,7 +930,10 @@ impl LoginChallengeV1 {
         if self.nonce.len() != 32 {
             return Err(ProtocolError::Validation("nonce must be 32 bytes".into()));
         }
-        if self.action != "worker-login" && self.action != "validator-login" {
+        if !matches!(
+            self.action.as_str(),
+            "worker-login" | "validator-login" | "node-login"
+        ) {
             return Err(ProtocolError::Validation("unknown login action".into()));
         }
         Ok(())

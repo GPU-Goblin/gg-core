@@ -403,7 +403,7 @@ fn peer_ticket_and_chunk_request_vectors() {
         artifact_hash: digest(0xC1),
         size: 64 * 1024 + 7,
         chunk_size: 64 * 1024,
-        reader_id: WorkerId::from_u128(7),
+        reader_id: WorkerId::from_u128(7).into(),
         reader_key: fixed_key(4).public_key(),
         issued_at: UnixMillis(1_760_000_000_000),
         expires_at: UnixMillis(1_760_000_300_000),
@@ -426,6 +426,52 @@ fn peer_ticket_and_chunk_request_vectors() {
     let signed = Signed::sign(&key, &net(), Domain::ChunkRequest, r).unwrap();
     signed.verify(&net(), Domain::ChunkRequest).unwrap();
     assert!(signed.verify(&net(), Domain::PeerTicket).is_err());
+}
+
+#[test]
+fn push_ticket_vector() {
+    let t = PushTicketV1 {
+        protocol_version: PROTOCOL_VERSION,
+        network: net(),
+        artifact_hash: digest(0xC2),
+        size: 3 * 64 * 1024,
+        chunk_size: 64 * 1024,
+        reader_fingerprint: digest(0xC3),
+        issued_at: UnixMillis(1_760_000_000_000),
+        expires_at: UnixMillis(1_760_000_300_000),
+    };
+    check("push_ticket_v1", Domain::PushTicket, &t);
+    // Not interchangeable with a read ticket.
+    let signed = Signed::sign(&fixed_key(5), &net(), Domain::PushTicket, t).unwrap();
+    assert!(signed.verify(&net(), Domain::PeerTicket).is_err());
+}
+
+#[test]
+fn comparison_vector() {
+    let side = |t: u8, a: u8, s: u8| ComparedV1 {
+        task_id: TaskId::from_u128(t as u128),
+        attempt_id: AttemptId::from_u128(a as u128),
+        submission_hash: digest(s),
+    };
+    let c = ComparisonV1 {
+        protocol_version: PROTOCOL_VERSION,
+        network: net(),
+        family: TaskId::from_u128(0x31),
+        a: side(0x31, 0x41, 0xD1),
+        b: side(0x32, 0x42, 0xD2),
+        outcome: gg_core::VerificationOutcome::Accepted,
+        checks: vec![CheckV1 {
+            name: "outputs.c".into(),
+            passed: true,
+            measured: Some(0.5),
+            tolerance: Some(1.0),
+            detail: "identical".into(),
+        }],
+        compared_at: UnixMillis(1_760_000_000_000),
+    };
+    check("comparison_v1", Domain::Comparison, &c);
+    let signed = Signed::sign(&fixed_key(6), &net(), Domain::Comparison, c).unwrap();
+    assert!(signed.verify(&net(), Domain::Verification).is_err());
 }
 
 #[test]

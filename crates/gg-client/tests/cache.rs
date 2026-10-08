@@ -142,3 +142,32 @@ fn concurrent_stores_of_one_artifact_and_temporary_names_do_not_collide() {
     assert_ne!(a, b);
     assert!(a.to_string_lossy().ends_with("in.0.part"));
 }
+
+/// Stores running at once (parallel downloads, a lab node pulling while it writes a checkpoint)
+/// never fail because another store renamed or evicted a file while the cache was being listed.
+#[test]
+fn concurrent_stores_do_not_fail_on_each_others_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let cache = gg_client::cache::ArtifactCache::new(dir.path().join("cache"), u64::MAX);
+    let threads: Vec<_> = (0..8u32)
+        .map(|t| {
+            let cache = cache.clone();
+            let src = dir.path().join(format!("src-{t}"));
+            std::fs::create_dir_all(&src).unwrap();
+            std::thread::spawn(move || {
+                for i in 0..200u32 {
+                    let bytes = format!("{t}-{i}").into_bytes();
+                    let path = src.join(i.to_string());
+                    std::fs::write(&path, &bytes).unwrap();
+                    cache
+                        .store(&gg_core::Sha256Digest::of_bytes(&bytes), &path)
+                        .unwrap();
+                }
+            })
+        })
+        .collect();
+    for t in threads {
+        t.join().unwrap();
+    }
+    assert!(cache.used_bytes().unwrap() > 0);
+}

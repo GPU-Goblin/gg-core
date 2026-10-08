@@ -41,6 +41,8 @@ string_schema!(crate::ids::AttemptId, "UUID");
 string_schema!(crate::ids::LeaseId, "UUID");
 string_schema!(crate::ids::WorkerId, "UUID");
 string_schema!(crate::ids::ValidatorId, "UUID");
+string_schema!(crate::ids::NodeId, "UUID");
+string_schema!(crate::ids::ReaderId, "UUID");
 string_schema!(crate::ids::SubmissionId, "UUID");
 string_schema!(crate::ids::DecisionId, "UUID");
 string_schema!(crate::ids::ReceiptId, "UUID");

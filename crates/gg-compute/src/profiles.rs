@@ -55,6 +55,8 @@ pub fn admitted_for(kind: &str, profile: &str) -> bool {
                 || (GRAPH_GPU_ADMITTED && profile == GPU_F32_WGPU_VULKAN_V1)
                 || (GRAPH_CUDA_ADMITTED && profile == GPU_F32_LIBTORCH_CUDA_V1)
         }
+        // The comparison is the same CPU code whatever the worker's engine.
+        "replica.compare.v1" => profile == CPU_F32_FLEX_V1,
         _ => false,
     }
 }

@@ -14,6 +14,7 @@ pub mod graph;
 pub mod matmul;
 pub mod mlp;
 pub mod profiles;
+pub mod replica;
 pub mod synthetic;
 
 pub use catalog::{CATALOG_VERSION, ResourceEstimate, ValidatedTask, validate_definition};
@@ -41,6 +42,7 @@ pub fn execute_task(
         TaskParamsV1::GraphStage(_) => {
             graph::stage_task::execute(engine, task, inputs, out_dir, None)
         }
+        TaskParamsV1::ReplicaCompare(_) => replica::execute(task, inputs, out_dir),
     }
 }
 
@@ -163,6 +165,7 @@ fn verify_with(
             declared_profile,
             reference,
         ),
+        TaskParamsV1::ReplicaCompare(_) => replica::verify(task, inputs, candidates, claimed),
     }
 }
 

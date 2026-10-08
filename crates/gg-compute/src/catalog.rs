@@ -5,8 +5,8 @@ use std::collections::BTreeMap;
 use gg_core::{Credits, ResourceLimits};
 use gg_protocol::messages::{
     ArtifactRef, GraphGradParamsV1, GraphStageParamsV1, MlpGradParamsV1, MlpTrainParamsV1,
-    RewardScheduleV1, SeedStrategyV1, TaskDefinitionV1, TaskParamsV1, ToleranceV1,
-    ValidationPolicyV1,
+    ReplicaCompareParamsV1, RewardScheduleV1, SeedStrategyV1, TaskDefinitionV1, TaskParamsV1,
+    ToleranceV1, ValidationPolicyV1,
 };
 use gg_protocol::tensor_file;
 
@@ -44,6 +44,7 @@ pub const KINDS: &[&str] = &[
     "mlp.grad.v1",
     "graph.grad.v1",
     "graph.stage.v1",
+    "replica.compare.v1",
 ];
 
 /// Bounds of `mlp.train.v1`.
@@ -142,7 +143,123 @@ pub fn validate_definition(def: &TaskDefinitionV1) -> Result<ValidatedTask, Comp
         TaskParamsV1::MlpGrad(p) => validate_grad(def, p),
         TaskParamsV1::GraphGrad(p) => validate_graph_grad(def, p),
         TaskParamsV1::GraphStage(p) => validate_graph_stage(def, p),
+        TaskParamsV1::ReplicaCompare(p) => validate_replica_compare(def, p),
     }
+}
+
+/// At most this many outputs are compared in one `replica.compare.v1` task.
+pub const MAX_COMPARED_OUTPUTS: usize = 512;
+/// Bound on the verdict a comparer writes.
+pub const MAX_VERDICT_BYTES: u64 = 64 << 10;
+
+fn validate_replica_compare(
+    def: &TaskDefinitionV1,
+    p: &ReplicaCompareParamsV1,
+) -> Result<ValidatedTask, ComputeError> {
+    let bad = |m: &str| Err(ComputeError::InvalidParams(m.into()));
+    if !KINDS.contains(&p.compared_kind.as_str()) || p.compared_kind == "replica.compare.v1" {
+        return bad("compared_kind is not a comparable catalog kind");
+    }
+    let t = p.tolerance;
+    if !(t.abs >= 0.0 && t.rel >= 0.0 && t.abs <= MAX_TOLERANCE && t.rel <= MAX_NORM_TOLERANCE) {
+        return bad("compared tolerance out of range");
+    }
+    if p.outputs.is_empty() || p.outputs.len() > MAX_COMPARED_OUTPUTS {
+        return bad("outputs out of range");
+    }
+    if p.profile_a.len() > 64 || p.profile_b.len() > 64 {
+        return bad("profile too long");
+    }
+    let mut expected: Vec<String> = p
+        .outputs
+        .iter()
+        .flat_map(|n| [format!("a.{n}"), format!("b.{n}")])
+        .collect();
+    expected.sort();
+    expected.dedup();
+    let given: Vec<String> = def.inputs.keys().cloned().collect();
+    if given != expected || expected.len() != 2 * p.outputs.len() {
+        return Err(ComputeError::Inputs(
+            "inputs must be a.<name> and b.<name> for every compared output".into(),
+        ));
+    }
+    for r in def.inputs.values() {
+        if r.size > p.max_output_bytes {
+            return Err(ComputeError::Inputs(
+                "a compared output is larger than its task allows".into(),
+            ));
+        }
+    }
+    let estimate = estimate_replica_compare(def.inputs.values().map(|r| r.size).sum());
+    if estimate.output_bytes > def.resource_limits.max_output_bytes {
+        return Err(ComputeError::OutputLimit(
+            "max_output_bytes below the verdict size".into(),
+        ));
+    }
+    Ok(ValidatedTask {
+        params: def.params.clone(),
+        input_shapes: BTreeMap::new(),
+        output_shapes: BTreeMap::new(),
+        json_outputs: vec![crate::replica::VERDICT.to_owned()],
+        estimate,
+        tolerance: p.tolerance,
+        limits: def.resource_limits.clone(),
+    })
+}
+
+/// A comparison reads both sides once.
+pub fn estimate_replica_compare(input_bytes: u64) -> ResourceEstimate {
+    ResourceEstimate {
+        flops: input_bytes,
+        ram_bytes: 2 * input_bytes + (64 << 20),
+        output_bytes: MAX_VERDICT_BYTES,
+        est_cpu_secs: input_bytes as f64 / 5e8,
+    }
+}
+
+/// A complete `replica.compare.v1` definition: the outputs of two computations (`a`, `b`) of a
+/// task defined by `compared`.
+pub fn replica_compare_definition(
+    compared: &TaskDefinitionV1,
+    a: (&BTreeMap<String, ArtifactRef>, &str),
+    b: (&BTreeMap<String, ArtifactRef>, &str),
+) -> Result<TaskDefinitionV1, ComputeError> {
+    let limits = &compared.resource_limits;
+    let params = TaskParamsV1::ReplicaCompare(ReplicaCompareParamsV1 {
+        compared_kind: compared.params.compute_kind().to_owned(),
+        tolerance: compared.validation_policy.tolerance,
+        max_output_bytes: limits.max_output_bytes,
+        outputs: a.0.keys().cloned().collect(),
+        profile_a: a.1.to_owned(),
+        profile_b: b.1.to_owned(),
+    });
+    let mut inputs = BTreeMap::new();
+    for (name, r) in a.0 {
+        inputs.insert(format!("a.{name}"), *r);
+    }
+    for (name, r) in b.0 {
+        inputs.insert(format!("b.{name}"), *r);
+    }
+    let bytes: u64 = inputs.values().map(|r| r.size).sum();
+    let est = estimate_replica_compare(bytes);
+    let def = TaskDefinitionV1 {
+        catalog_version: CATALOG_VERSION,
+        reward_schedule: price(&params)?,
+        resource_limits: ResourceLimits {
+            max_ram_bytes: est.ram_bytes,
+            max_disk_bytes: (bytes * 2).max(64 << 20),
+            max_duration_secs: 600,
+            max_output_bytes: MAX_VERDICT_BYTES,
+        },
+        validation_policy: default_policy(&params)?,
+        params,
+        inputs,
+        numeric_profile: profiles::REQUESTED_F32_V1.into(),
+        seed_strategy: SeedStrategyV1::None,
+        max_attempts: 3,
+    };
+    validate_definition(&def)?;
+    Ok(def)
 }
 
 fn validate_graph_stage(
@@ -824,6 +941,10 @@ pub fn price(params: &TaskParamsV1) -> Result<RewardScheduleV1, ComputeError> {
         TaskParamsV1::MlpGrad(p) => estimate_grad(p, 0).flops,
         TaskParamsV1::GraphGrad(p) => estimate_graph_grad(p, 0).flops,
         TaskParamsV1::GraphStage(p) => estimate_graph_stage(p).flops,
+        // Priced on what it reads.
+        TaskParamsV1::ReplicaCompare(p) => p
+            .max_output_bytes
+            .saturating_mul(2 * p.outputs.len() as u64),
     };
     // 1 TC per 10^9 flop, minimum 1 TC. Verification costs the same as a primary run.
     let primary = Credits(1 + flops / 1_000_000_000);
@@ -883,6 +1004,18 @@ pub fn default_limits(params: &TaskParamsV1) -> Result<ResourceLimits, ComputeEr
                 max_output_bytes: est.output_bytes,
             })
         }
+        TaskParamsV1::ReplicaCompare(p) => {
+            let bytes = p
+                .max_output_bytes
+                .saturating_mul(2 * p.outputs.len() as u64);
+            let est = estimate_replica_compare(bytes);
+            Ok(ResourceLimits {
+                max_ram_bytes: est.ram_bytes,
+                max_disk_bytes: (bytes * 2).max(64 << 20),
+                max_duration_secs: 600,
+                max_output_bytes: MAX_VERDICT_BYTES,
+            })
+        }
     }
 }
 
@@ -921,6 +1054,9 @@ pub fn default_policy(params: &TaskParamsV1) -> Result<ValidationPolicyV1, Compu
         },
         // Per tensor, by norm (method v2, ADR-0031); a stage is a piece of the full gradient (D2).
         TaskParamsV1::GraphGrad(_) | TaskParamsV1::GraphStage(_) => graph_tolerance(),
+        // Not recomputed by a validator: decided by agreement with the lab node or a second
+        // comparer (ADR-0042). The compared task's tolerance is in the parameters.
+        TaskParamsV1::ReplicaCompare(_) => ToleranceV1 { abs: 0.0, rel: 0.0 },
     };
     Ok(ValidationPolicyV1 {
         method: "recompute-reference".into(),

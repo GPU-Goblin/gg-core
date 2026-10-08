@@ -33,6 +33,11 @@ pub enum Domain {
     ChunkRequest,
     /// Signed release manifest of the distributed executables (phase P8).
     Release,
+    /// Push ticket: a holder may push one artifact to one reader (signed by the server, ADR-0041).
+    PushTicket,
+    /// Comparison of two computations of one task by two contributors (ADR-0042), signed by the
+    /// comparer (the server, or the lab node that pulled both).
+    Comparison,
     /// Merkle leaf (reward batches, phase P7).
     MerkleLeaf,
     /// Merkle inner node.
@@ -54,6 +59,8 @@ impl Domain {
             Domain::PeerTicket => "peer-ticket",
             Domain::ChunkRequest => "chunk-request",
             Domain::Release => "release-manifest",
+            Domain::PushTicket => "push-ticket",
+            Domain::Comparison => "comparison",
             Domain::MerkleLeaf => "merkle-leaf",
             Domain::MerkleNode => "merkle-node",
         }

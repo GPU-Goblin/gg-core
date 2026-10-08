@@ -282,6 +282,26 @@ pub fn auto_tile(
     Ok((g, done))
 }
 
+/// Applies a tiling already decided (by [`auto_tile`], elsewhere) to `graph`, in its order: the
+/// description it gives is the one `auto_tile` gave, so that a tiled description can be checked
+/// against its source and its tiling.
+pub fn apply(graph: &ModelGraphV1, tiled: &[Tiled]) -> Result<ModelGraphV1, String> {
+    let mut g = graph.clone();
+    for t in tiled {
+        let report = super::validate(&g).map_err(|e| e.to_string())?;
+        let (next, done) = tile(&g, &report, &t.param, t.tiles)?;
+        if done != *t {
+            return Err(format!(
+                "'{}' tiles along axis {}, not {}",
+                t.param, done.axis, t.axis
+            ));
+        }
+        super::validate(&next).map_err(|e| format!("after tiling '{}': {e}", t.param))?;
+        g = next;
+    }
+    Ok(g)
+}
+
 /// Splits the weight values the same way the description was split.
 pub fn split_weights(
     weights: &BTreeMap<String, TensorF32>,

@@ -7,6 +7,22 @@ rust-version.workspace = true
 license.workspace = true
 publish.workspace = true
 
+[features]
+default = []
+# Peer-to-peer artifact exchange (ADR-0012), its pinned TLS, and router port mapping: used by the
+# worker, the lab node (ADR-0041) and the validator; the `gg` CLI builds without it.
+p2p = [
+    "dep:axum",
+    "dep:rustls",
+    "dep:tokio-rustls",
+    "dep:hyper",
+    "dep:hyper-util",
+    "dep:http-body-util",
+    "dep:aws-lc-rs",
+    "dep:anyhow",
+    "dep:socket2",
+]
+
 [dependencies]
 gg-core = { path = "../gg-core" }
 gg-protocol = { path = "../gg-protocol" }
@@ -15,11 +31,21 @@ tokio-util = { workspace = true }
 futures-util = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
+toml = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 hex = { workspace = true }
 uuid = { workspace = true }
+axum = { workspace = true, optional = true }
+rustls = { workspace = true, optional = true }
+tokio-rustls = { workspace = true, optional = true }
+hyper = { workspace = true, optional = true }
+hyper-util = { workspace = true, optional = true }
+http-body-util = { workspace = true, optional = true }
+aws-lc-rs = { workspace = true, optional = true }
+anyhow = { workspace = true, optional = true }
+socket2 = { version = "0.6", optional = true }
 
 [dev-dependencies]
 axum = { workspace = true }

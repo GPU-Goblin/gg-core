@@ -97,6 +97,12 @@ pub struct ServerInfo {
     /// ADR-0026), in which case activations are uploaded before submission as before.
     #[serde(default)]
     pub p2p_chunk_bytes: u32,
+    /// Largest output of a job a lab node holds that the server accepts as an upload (ADR-0041).
+    #[serde(default)]
+    pub node_relay_max_bytes: u64,
+    /// How long a declared output waits for its holder.
+    #[serde(default)]
+    pub pending_output_secs: i64,
 }
 
 /// Answer to an announcement: what the control plane observed and recorded.
@@ -246,6 +252,25 @@ impl Api {
         format!("{}/v1{path}", self.base)
     }
 
+    /// PUT raw bytes (a relayed chunk, ADR-0041); the answer's body is ignored.
+    pub async fn put_bytes(
+        &self,
+        token: &str,
+        path: &str,
+        bytes: Vec<u8>,
+    ) -> Result<(), ClientError> {
+        let r = self
+            .send(|| {
+                self.http
+                    .put(self.url(path))
+                    .bearer_auth(token)
+                    .header("content-type", "application/octet-stream")
+                    .body(bytes.clone())
+            })
+            .await?;
+        check(r).await.map(|_| ())
+    }
+
     /// GET /v1/info.
     pub async fn info(&self) -> Result<ServerInfo, ClientError> {
         Ok(self
@@ -297,17 +322,17 @@ impl Api {
             .expect("json"))
     }
 
-    /// Challenge-based login for a worker or validator key.
+    /// Challenge-based login for a worker, validator or lab node key.
     pub async fn login(
         &self,
         key: &SecretKey,
         network: &NetworkId,
         action: &str,
     ) -> Result<Session, ClientError> {
-        let prefix = if action == "worker-login" {
-            "/worker"
-        } else {
-            "/validator"
+        let prefix = match action {
+            "worker-login" => "/worker",
+            "node-login" => "/node",
+            _ => "/validator",
         };
         let ch: Value = self
             .post_json(
@@ -394,8 +419,15 @@ impl Api {
             if received > 0 {
                 req = req.header("range", format!("bytes={received}-"));
             }
-            let r = match req.send().await.and_then(|r| r.error_for_status()) {
-                Ok(r) => r,
+            let r = match req.send().await {
+                Ok(r) if r.status().is_success() => r,
+                // A refusal keeps its status and message (`409`: not stored here, read it from
+                // peers), as every other call of this client reports it.
+                Ok(r) => {
+                    drop(file);
+                    let _ = tokio::fs::remove_file(&tmp).await;
+                    return Err(check(r).await.expect_err("status is not a success"));
+                }
                 Err(e) if attempts < 5 && (e.is_connect() || e.is_timeout() || e.is_request()) => {
                     tokio::time::sleep(std::time::Duration::from_millis(200 * attempts as u64))
                         .await;

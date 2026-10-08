@@ -174,8 +174,10 @@ impl ArtifactCache {
             return Ok(out);
         };
         for e in rd {
-            let e = e?;
-            let meta = e.metadata()?;
+            // An entry can go between the listing and its metadata: a concurrent store renames its
+            // temporary file, or evicts. It is simply not counted.
+            let Ok(e) = e else { continue };
+            let Ok(meta) = e.metadata() else { continue };
             if !meta.is_file() || e.file_name().to_string_lossy().starts_with('.') {
                 continue;
             }
