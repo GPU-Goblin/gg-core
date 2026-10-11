@@ -78,7 +78,8 @@ GG_UPDATE_VECTORS=1 cargo test -p gg-protocol --test vectors
 
 ## Status
 
-Research software, version 0.1.0. It is not ready for a public deployment: see
+Research software, version 0.1.0, used by the public beta at grid.gpugoblin.com. What works, what
+does not, and the risks not yet addressed:
 [gg-server/docs/STATUS.md](https://github.com/GPU-Goblin/gg-server/blob/main/docs/STATUS.md) and
 [gg-server/docs/RISKS.md](https://github.com/GPU-Goblin/gg-server/blob/main/docs/RISKS.md).
 
